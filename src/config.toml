@@ -95,6 +95,11 @@ max_retries         = 3
 poll_interval       = 10
 
 [dedup]
+# Embeddings provider: "openai" (default) or "gemini".
+# Gemini uses gemini-embedding-001 with output_dimensionality=768 by default.
+provider            = "openai"
+# Output vector dimension. OpenAI default 1536; Gemini supports 768 / 1536 / 3072.
+embedding_dim       = 1536
 embedding_model     = "text-embedding-3-small"
 embedding_api_key   = ""  # Optional, uses OPENAI_API_KEY if not set
 embedding_tpm_limit = 5000000                   # Реальный лимит для embedding моделей (Tier 3)
@@ -140,6 +145,10 @@ reasoning_summary   = "auto"
 
 # Параметры для embeddings и поиска пар
 run                 = true
+# Embeddings provider (independent from LLM provider above): "openai" or "gemini".
+embedding_provider  = "openai"
+# Output vector dimension. OpenAI default 1536; Gemini supports 768 / 1536 / 3072.
+embedding_dim       = 1536
 embedding_model     = "text-embedding-3-small"
 embedding_api_key   = ""  # Optional, uses OPENAI_API_KEY if not set
 embedding_tpm_limit = 5000000                   # Реальный лимит для embedding моделей (Tier 3)

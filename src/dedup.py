@@ -42,7 +42,7 @@ from src.utils.exit_codes import (
     EXIT_RUNTIME_ERROR,
     EXIT_SUCCESS,
 )
-from src.utils.llm_embeddings import get_embeddings
+from src.utils.embeddings_factory import get_embeddings
 from src.utils.validation import validate_json
 
 setup_console_encoding()
