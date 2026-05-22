@@ -49,6 +49,11 @@ class EmbeddingsClient:
         self.client = OpenAI(api_key=api_key)
         self.model = config.get("embedding_model", "text-embedding-3-small")
 
+        # Output dimensionality (configurable for parity with GeminiEmbeddingsClient).
+        # text-embedding-3-small / -large both default to 1536; OpenAI also supports
+        # custom output sizes via the `dimensions` request parameter.
+        self.embedding_dim = int(config.get("embedding_dim", 1536))
+
         # TPM control
         self.tpm_limit = config.get("embedding_tpm_limit", 1000000)
         self.remaining_tokens = self.tpm_limit
@@ -231,7 +236,7 @@ class EmbeddingsClient:
             texts: List of texts to process
 
         Returns:
-            numpy array shape (n_texts, 1536) with normalized vectors
+            numpy array shape (n_texts, self.embedding_dim) [default 1536] with normalized vectors
 
         Raises:
             Exception: On API errors after all retry attempts
@@ -251,7 +256,7 @@ class EmbeddingsClient:
         # If all texts are empty - return zero vectors
         if not non_empty_texts:
             logger.warning(f"All {len(texts)} texts are empty, returning zero vectors")
-            return np.zeros((len(texts), 1536), dtype=np.float32)
+            return np.zeros((len(texts), self.embedding_dim), dtype=np.float32)
 
         # Split only non-empty texts into batches
         batches = self._batch_texts(non_empty_texts)
@@ -349,7 +354,7 @@ class EmbeddingsClient:
 
         # Restore original order with zero vectors for empty texts
         if len(non_empty_indices) < len(texts):
-            result = np.zeros((len(texts), 1536), dtype=np.float32)
+            result = np.zeros((len(texts), self.embedding_dim), dtype=np.float32)
             for i, idx in enumerate(non_empty_indices):
                 result[idx] = embeddings_array[i]
             logger.info(

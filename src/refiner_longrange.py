@@ -41,7 +41,7 @@ from src.utils.exit_codes import (
     EXIT_SUCCESS,
 )
 from src.utils.llm_factory import make_llm_client
-from src.utils.llm_embeddings import get_embeddings
+from src.utils.embeddings_factory import get_embeddings
 from src.utils.validation import validate_graph_invariants, validate_json
 
 setup_console_encoding()
