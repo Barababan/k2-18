@@ -346,7 +346,7 @@ class TestRefinerMain:
     @patch("src.refiner_longrange.json.load")
     @patch("src.refiner_longrange.json.dump")
     @patch("src.refiner_longrange.get_node_embeddings")  # Fixed from get_embeddings
-    @patch("src.refiner_longrange.OpenAIClient")
+    @patch("src.refiner_longrange.make_llm_client")
     @patch("src.refiner_longrange.generate_candidate_pairs")  # Fixed from find_candidates
     @patch("src.refiner_longrange.analyze_candidate_pairs")  # Fixed from analyze_relations
     def test_main_success(

@@ -9,6 +9,9 @@ allowed_extensions      = ["txt", "md", "html"]
 # gpt-5-mini-2025-08-07 - дешевая
 
 [itext2kg_concepts]
+# LLM provider: "openai" (default) or "gemini".
+# When "gemini", expects GEMINI_API_KEY env var and model = "gemini-2.5-flash" / "gemini-2.5-pro".
+provider            = "openai"
 is_reasoning        = true        # ОБЯЗАТЕЛЬНЫЙ! Иначе падаем с ошибкой. Проверь модель!
 
 # Управление контекстом
@@ -48,6 +51,8 @@ max_retries         = 3
 poll_interval       = 10
 
 [itext2kg_graph]
+# LLM provider: "openai" (default) or "gemini". See [itext2kg_concepts] for details.
+provider            = "openai"
 is_reasoning        = true        # ОБЯЗАТЕЛЬНЫЙ! Иначе падаем с ошибкой. Проверь модель!
 
 # Управление контекстом
@@ -104,6 +109,8 @@ faiss_metric        = "INNER_PRODUCT"
 k_neighbors         = 5
 
 [refiner]
+# LLM provider: "openai" (default) or "gemini". See [itext2kg_concepts] for details.
+provider            = "openai"
 is_reasoning        = true        # ОБЯЗАТЕЛЬНЫЙ! Иначе падаем с ошибкой. Проверь модель!
 
 # Управление контекстом

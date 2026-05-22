@@ -40,7 +40,7 @@ from src.utils.exit_codes import (
     EXIT_RUNTIME_ERROR,
     EXIT_SUCCESS,
 )
-from src.utils.llm_client import OpenAIClient
+from src.utils.llm_factory import make_llm_client
 from src.utils.llm_embeddings import get_embeddings
 from src.utils.validation import validate_graph_invariants, validate_json
 
@@ -663,8 +663,8 @@ def analyze_candidate_pairs(
         raise
 
     # Initialize LLM client - just pass the full config!
-    # OpenAIClient knows what parameters it needs based on is_reasoning flag
-    llm_client = OpenAIClient(config)
+    # Factory selects OpenAI or Gemini client based on config['provider']
+    llm_client = make_llm_client(config)
 
     all_new_edges = []
     previous_response_id = None

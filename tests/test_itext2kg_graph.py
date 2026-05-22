@@ -114,7 +114,7 @@ def processor_with_mocks(sample_config, sample_concept_dict, tmp_path):
     module.PROMPTS_DIR = tmp_path / "prompts"
     module.SCHEMAS_DIR = tmp_path / "schemas"
 
-    with patch("src.itext2kg_graph.OpenAIClient") as MockClient:
+    with patch("src.itext2kg_graph.make_llm_client") as MockClient:
         mock_client = MagicMock()
         MockClient.return_value = mock_client
 
@@ -149,7 +149,7 @@ class TestSliceProcessor:
         module.PROMPTS_DIR = tmp_path / "prompts"
         module.SCHEMAS_DIR = tmp_path / "schemas"
 
-        with patch("src.itext2kg_graph.OpenAIClient"):
+        with patch("src.itext2kg_graph.make_llm_client"):
             processor = SliceProcessor(sample_config)
 
             assert processor.concept_dict == sample_concept_dict
@@ -160,7 +160,7 @@ class TestSliceProcessor:
 
     def test_load_concept_dictionary_not_found(self, sample_config, tmp_path):
         """Test error when ConceptDictionary not found."""
-        with patch("src.itext2kg_graph.OpenAIClient"):
+        with patch("src.itext2kg_graph.make_llm_client"):
             with pytest.raises(SystemExit) as exc_info:
                 SliceProcessor(sample_config)
 

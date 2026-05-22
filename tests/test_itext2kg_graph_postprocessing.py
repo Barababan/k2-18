@@ -57,7 +57,7 @@ class TestIDPostProcessing:
         module.SCHEMAS_DIR = Path(__file__).parent.parent / "src" / "schemas"
 
         # Mock LLM client
-        with patch("src.itext2kg_graph.OpenAIClient"):
+        with patch("src.itext2kg_graph.make_llm_client"):
             processor = SliceProcessor(mock_config)
             return processor
 

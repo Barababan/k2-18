@@ -29,7 +29,7 @@ class TestNodeDeduplication:
         }
 
         # Mock OpenAIClient and ConceptDictionary loading
-        with patch("src.itext2kg_graph.OpenAIClient") as mock_client_class, patch.object(
+        with patch("src.itext2kg_graph.make_llm_client") as mock_client_class, patch.object(
             SliceProcessor, "_load_concept_dictionary"
         ) as mock_load:
 
