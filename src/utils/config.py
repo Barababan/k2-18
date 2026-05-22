@@ -25,41 +25,55 @@ class ConfigValidationError(Exception):
     pass
 
 
+def _provider_of(section: Dict[str, Any]) -> str:
+    """Return normalized LLM provider name for a config section.
+
+    Defaults to 'openai' when the field is missing for backward compatibility.
+    """
+    return str(section.get("provider", "openai")).lower().strip() or "openai"
+
+
+def _placeholder_key(key: str) -> bool:
+    """True if api_key is missing, whitespace-only, or an unfilled placeholder."""
+    if not key or not key.strip():
+        return True
+    stripped = key.strip()
+    return stripped.startswith("sk-...") or stripped.startswith("AIza...")
+
+
 def _inject_env_api_keys(config: Dict[str, Any]) -> None:
     """
     Injects API keys from environment variables.
 
+    For each LLM-using section ([itext2kg_concepts], [itext2kg_graph], [refiner])
+    the env var picked depends on the section's `provider` field:
+      provider = "openai" (default)  -> OPENAI_API_KEY
+      provider = "gemini"            -> GEMINI_API_KEY
+
+    Embedding sections ([dedup], [refiner].embedding_api_key) always use
+    OPENAI_EMBEDDING_API_KEY (falling back to OPENAI_API_KEY) for now;
+    Gemini embeddings will land in a follow-up PR.
+
     Priority:
     1. Environment variable (if set)
     2. Value from config.toml (if not placeholder)
-    3. Validation error
+    3. Validation error in _validate_*_section
     """
-    # Main API key
-    env_api_key = os.getenv("OPENAI_API_KEY")
+    env_openai = os.getenv("OPENAI_API_KEY")
+    env_gemini = os.getenv("GEMINI_API_KEY")
 
-    # itext2kg_concepts.api_key
-    if env_api_key:
-        if "itext2kg_concepts" in config:
-            current_key = config["itext2kg_concepts"].get("api_key", "")
-            if not current_key or current_key.startswith("sk-..."):
-                config["itext2kg_concepts"]["api_key"] = env_api_key
+    for section_name in ("itext2kg_concepts", "itext2kg_graph", "refiner"):
+        section = config.get(section_name)
+        if not isinstance(section, dict):
+            continue
+        provider = _provider_of(section)
+        env_key = env_gemini if provider == "gemini" else env_openai
+        if env_key and _placeholder_key(section.get("api_key", "")):
+            section["api_key"] = env_key
 
-    # itext2kg_graph.api_key
-    if env_api_key:
-        if "itext2kg_graph" in config:
-            current_key = config["itext2kg_graph"].get("api_key", "")
-            if not current_key or current_key.startswith("sk-..."):
-                config["itext2kg_graph"]["api_key"] = env_api_key
-
-    # refiner.api_key
-    if env_api_key:
-        if "refiner" in config:
-            current_key = config["refiner"].get("api_key", "")
-            if not current_key or current_key.startswith("sk-..."):
-                config["refiner"]["api_key"] = env_api_key
-
-    # Embedding API keys (can use separate key)
-    env_embedding_key = os.getenv("OPENAI_EMBEDDING_API_KEY", env_api_key)
+    # Embedding API keys (can use separate key).
+    # Embeddings stay on OpenAI for now; Gemini embeddings land in a follow-up PR.
+    env_embedding_key = os.getenv("OPENAI_EMBEDDING_API_KEY", env_openai)
 
     # dedup.embedding_api_key
     if env_embedding_key:
@@ -233,12 +247,14 @@ def _validate_itext2kg_concepts_section(section: Dict[str, Any]) -> None:
             "itext2kg_concepts.log_level must be one of: debug, info, warning, error"
         )
 
-    # Updated api_key check
-    if not section["api_key"].strip() or section["api_key"].startswith("sk-..."):
-        if not os.getenv("OPENAI_API_KEY"):
+    # Updated api_key check (provider-aware)
+    if _placeholder_key(section["api_key"]):
+        provider = _provider_of(section)
+        env_var = "GEMINI_API_KEY" if provider == "gemini" else "OPENAI_API_KEY"
+        if not os.getenv(env_var):
             raise ConfigValidationError(
-                "itext2kg_concepts.api_key not configured. Either:\n"
-                "1. Set OPENAI_API_KEY environment variable\n"
+                f"itext2kg_concepts.api_key not configured (provider={provider}). Either:\n"
+                f"1. Set {env_var} environment variable\n"
                 "2. Provide valid key in config.toml"
             )
 
@@ -295,12 +311,14 @@ def _validate_itext2kg_graph_section(section: Dict[str, Any]) -> None:
             "itext2kg_graph.log_level must be one of: debug, info, warning, error"
         )
 
-    # Updated api_key check
-    if not section["api_key"].strip() or section["api_key"].startswith("sk-..."):
-        if not os.getenv("OPENAI_API_KEY"):
+    # Updated api_key check (provider-aware)
+    if _placeholder_key(section["api_key"]):
+        provider = _provider_of(section)
+        env_var = "GEMINI_API_KEY" if provider == "gemini" else "OPENAI_API_KEY"
+        if not os.getenv(env_var):
             raise ConfigValidationError(
-                "itext2kg_graph.api_key not configured. Either:\n"
-                "1. Set OPENAI_API_KEY environment variable\n"
+                f"itext2kg_graph.api_key not configured (provider={provider}). Either:\n"
+                f"1. Set {env_var} environment variable\n"
                 "2. Provide valid key in config.toml"
             )
 
@@ -413,12 +431,14 @@ def _validate_refiner_section(section: Dict[str, Any]) -> None:
     if section["max_pairs_per_node"] <= 0:
         raise ConfigValidationError("refiner.max_pairs_per_node must be positive")
 
-    # Updated api_key check
-    if not section["api_key"].strip() or section["api_key"].startswith("sk-..."):
-        if not os.getenv("OPENAI_API_KEY"):
+    # Updated api_key check (provider-aware)
+    if _placeholder_key(section["api_key"]):
+        provider = _provider_of(section)
+        env_var = "GEMINI_API_KEY" if provider == "gemini" else "OPENAI_API_KEY"
+        if not os.getenv(env_var):
             raise ConfigValidationError(
-                "refiner.api_key not configured. Either:\n"
-                "1. Set OPENAI_API_KEY environment variable\n"
+                f"refiner.api_key not configured (provider={provider}). Either:\n"
+                f"1. Set {env_var} environment variable\n"
                 "2. Provide valid key in config.toml"
             )
 

@@ -67,7 +67,7 @@ class TestRefinerTimeoutRetryMechanism:
             mock_load_prompt.return_value = "Test prompt"
             
             # Mock LLM client
-            with patch("src.refiner_longrange.OpenAIClient") as mock_client_class:
+            with patch("src.refiner_longrange.make_llm_client") as mock_client_class:
                 mock_client = mock_client_class.return_value
                 
                 # Setup retry behavior - fail twice with timeout, then succeed
@@ -139,7 +139,7 @@ class TestRefinerTimeoutRetryMechanism:
         with patch("src.refiner_longrange.load_refiner_longrange_prompt") as mock_load_prompt:
             mock_load_prompt.return_value = "Test prompt"
             
-            with patch("src.refiner_longrange.OpenAIClient") as mock_client_class:
+            with patch("src.refiner_longrange.make_llm_client") as mock_client_class:
                 mock_client = mock_client_class.return_value
                 
                 call_count = [0]
@@ -192,7 +192,7 @@ class TestRefinerTimeoutRetryMechanism:
         with patch("src.refiner_longrange.load_refiner_longrange_prompt") as mock_load_prompt:
             mock_load_prompt.return_value = "Test prompt"
             
-            with patch("src.refiner_longrange.OpenAIClient") as mock_client_class:
+            with patch("src.refiner_longrange.make_llm_client") as mock_client_class:
                 mock_client = mock_client_class.return_value
                 
                 attempt_count = [0]
@@ -239,7 +239,7 @@ class TestRefinerTimeoutRetryMechanism:
         with patch("src.refiner_longrange.load_refiner_longrange_prompt") as mock_load_prompt:
             mock_load_prompt.return_value = "Test prompt"
             
-            with patch("src.refiner_longrange.OpenAIClient") as mock_client_class:
+            with patch("src.refiner_longrange.make_llm_client") as mock_client_class:
                 mock_client = mock_client_class.return_value
                 
                 attempt_count = [0]
@@ -299,7 +299,7 @@ class TestRefinerTimeoutRetryMechanism:
         with patch("src.refiner_longrange.load_refiner_longrange_prompt") as mock_load_prompt:
             mock_load_prompt.return_value = "Test prompt"
             
-            with patch("src.refiner_longrange.OpenAIClient") as mock_client_class:
+            with patch("src.refiner_longrange.make_llm_client") as mock_client_class:
                 mock_client = mock_client_class.return_value
                 
                 node_count = [0]

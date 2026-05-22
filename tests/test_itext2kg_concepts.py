@@ -48,7 +48,7 @@ class TestSliceProcessor:
                     schema_file.write_text(json.dumps({"$schema": "test-schema"}), encoding="utf-8")
 
                     # Mock LLM client
-                    with patch("src.itext2kg_concepts.OpenAIClient"):
+                    with patch("src.itext2kg_concepts.make_llm_client"):
                         processor = SliceProcessor(mock_config)
                         return processor
 
@@ -714,7 +714,7 @@ class TestTimeoutRetryMechanism:
                         schema_file.write_text(json.dumps({"$schema": "test-schema"}), encoding="utf-8")
 
                         # Mock LLM client
-                        with patch("src.itext2kg_concepts.OpenAIClient") as mock_client_class:
+                        with patch("src.itext2kg_concepts.make_llm_client") as mock_client_class:
                             mock_client = mock_client_class.return_value
                             processor = SliceProcessor(mock_config)
                             processor.llm_client = mock_client

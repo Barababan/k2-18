@@ -37,7 +37,7 @@ from src.utils.exit_codes import (
     EXIT_RUNTIME_ERROR,
     EXIT_SUCCESS,
 )
-from src.utils.llm_client import OpenAIClient
+from src.utils.llm_factory import make_llm_client
 from src.utils.validation import (
     ValidationError,
     validate_concept_dictionary_invariants,
@@ -94,7 +94,7 @@ class SliceProcessor:
         """
         self.config = config["itext2kg_concepts"]
         self.full_config = config  # Save full config for accessing slicer settings
-        self.llm_client = OpenAIClient(self.config)
+        self.llm_client = make_llm_client(self.config)
         self.logger = self._setup_logger()
         self.stats = ProcessingStats()
 
