@@ -36,8 +36,7 @@ logger = logging.getLogger(__name__)
 # Map OpenAI-style reasoning_effort to Gemini thinking_budget tokens.
 # Gemini 2.5 Flash supports 0-24576; 2.5 Pro supports 128-32768.
 # We pick conservative defaults that comfortably fit both.
-_THINKING_BUDGET_BY_EFFORT: Dict[Optional[str], int] = {
-    None: 0,
+_THINKING_BUDGET_BY_EFFORT: Dict[str, int] = {
     "minimal": 512,
     "low": 1024,
     "medium": 4096,
@@ -152,7 +151,7 @@ class GeminiClient:
             kwargs["temperature"] = float(self.config["temperature"])
 
         if self.is_reasoning_model:
-            effort = self.config.get("reasoning_effort")
+            effort = self.config.get("reasoning_effort", "medium")
             budget = _THINKING_BUDGET_BY_EFFORT.get(effort, 4096)
             kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=budget)
 
