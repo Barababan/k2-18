@@ -33,6 +33,18 @@ def _provider_of(section: Dict[str, Any]) -> str:
     return str(section.get("provider", "openai")).lower().strip() or "openai"
 
 
+def _embedding_provider_of(section: Dict[str, Any]) -> str:
+    """Return normalized embedding provider name for a config section.
+
+    Reads `embedding_provider` (used by [refiner], where the embeddings
+    provider is independent from the LLM provider) when present and falls
+    back to `provider` (used by [dedup], where they coincide). Defaults to
+    'openai'.
+    """
+    raw = section.get("embedding_provider", section.get("provider", "openai"))
+    return str(raw).lower().strip() or "openai"
+
+
 def _placeholder_key(key: str) -> bool:
     """True if api_key is missing, whitespace-only, or an unfilled placeholder."""
     if not key or not key.strip():
@@ -90,9 +102,7 @@ def _inject_env_api_keys(config: Dict[str, Any]) -> None:
     # (independent from [refiner].provider, which controls the LLM client).
     refiner_section = config.get("refiner")
     if isinstance(refiner_section, dict):
-        refiner_embed_provider = str(
-            refiner_section.get("embedding_provider", "openai")
-        ).lower().strip() or "openai"
+        refiner_embed_provider = _embedding_provider_of(refiner_section)
         embed_env = env_gemini_embed if refiner_embed_provider == "gemini" else env_openai_embed
         if embed_env and _placeholder_key(refiner_section.get("embedding_api_key", "")):
             refiner_section["embedding_api_key"] = embed_env
@@ -449,6 +459,22 @@ def _validate_refiner_section(section: Dict[str, Any]) -> None:
             raise ConfigValidationError(
                 f"refiner.api_key not configured (provider={provider}). Either:\n"
                 f"1. Set {env_var} environment variable\n"
+                "2. Provide valid key in config.toml"
+            )
+
+    # Embedding api_key check (provider-aware).
+    # refiner.embedding_provider is independent from refiner.provider, so we
+    # resolve it separately via _embedding_provider_of.
+    if _placeholder_key(section.get("embedding_api_key", "")):
+        embed_provider = _embedding_provider_of(section)
+        if embed_provider == "gemini":
+            primary, fallback = "GEMINI_EMBEDDING_API_KEY", "GEMINI_API_KEY"
+        else:
+            primary, fallback = "OPENAI_EMBEDDING_API_KEY", "OPENAI_API_KEY"
+        if not (os.getenv(primary) or os.getenv(fallback)):
+            raise ConfigValidationError(
+                f"refiner.embedding_api_key not configured (provider={embed_provider}). Either:\n"
+                f"1. Set {primary} or {fallback} environment variable\n"
                 "2. Provide valid key in config.toml"
             )
 
